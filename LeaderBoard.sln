@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5F14E7A5-BF65-4614-88CD-55D8EE7E59B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeaderBoard", "src\LeaderBoard\LeaderBoard.csproj", "{44B93697-C835-4E1C-BD4C-799569BB930C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44B93697-C835-4E1C-BD4C-799569BB930C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44B93697-C835-4E1C-BD4C-799569BB930C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44B93697-C835-4E1C-BD4C-799569BB930C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44B93697-C835-4E1C-BD4C-799569BB930C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{44B93697-C835-4E1C-BD4C-799569BB930C} = {5F14E7A5-BF65-4614-88CD-55D8EE7E59B3}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {92FA6C2A-CE97-4EA8-A8D1-6D696782EF2B}
+	EndGlobalSection
+EndGlobal
