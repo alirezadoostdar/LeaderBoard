@@ -28,11 +28,12 @@ app.MapGet("/{topic}", (string Topic,int k,LeaderBoardDbContext dbContext) =>
     if (Topic == "order")
     {
         var items = dbContext.MostSoldProducts.OrderByDescending(d=>d.Score).Take(k).ToList();
-        return OkObjectResult(items);
+        return Results.Ok(items);
     }
-    else
+    else if(Topic == "game")
     {
-
+        var items = dbContext.PlayerScores.OrderByDescending(d => d.Score).Take(k).ToList();
+        return Results.Ok(items);
     }
     throw new InvalidOperationException();
 });

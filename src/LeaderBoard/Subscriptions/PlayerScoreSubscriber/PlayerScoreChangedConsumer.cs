@@ -7,18 +7,19 @@ public class PlayerScoreChangedConsumer(LeaderBoardDbContext context) : IConsume
     {
         // save on the set
         var message = context.Message;
-        var score = await _context.PlayerScores.FirstOrDefaultAsync(f => f.Username == message.PlayerUsername);
-        if(score is not null)
+        var item = await _context.PlayerScores.FirstOrDefaultAsync(f => f.Username == message.PlayerUsername);
+        if (item is not null)
         {
-            _context.PlayerScores.Remove(score);
+            item.Score = message.score;
         }
-
-        _context.PlayerScores.Add(new Models.PlayerScore
+        else
         {
-            Score = message.score,
-            Username = message.PlayerUsername,
-        });
-
+            _context.PlayerScores.Add(new Models.PlayerScore
+            {
+                Score = message.score,
+                Username = message.PlayerUsername,
+            });
+        }
         await _context.SaveChangesAsync();
     }
 }
