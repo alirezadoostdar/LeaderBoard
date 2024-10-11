@@ -1,13 +1,24 @@
-﻿using MassTransit;
+﻿namespace LeaderBoard.Subscriptions.PlayerScoreSubscriber;
 
-namespace LeaderBoard.Subscriptions.PlayerScoreSubscriber
+public class PlayerScoreChangedConsumer(LeaderBoardDbContext context) : IConsumer<PlayerScoreChangedEvent>
 {
-    public class PlayerScoreChangedConsumer : IConsumer<PlayerScoreChangedEvent>
+    private readonly LeaderBoardDbContext _context = context;
+    public async Task Consume(ConsumeContext<PlayerScoreChangedEvent> context)
     {
-        public Task Consume(ConsumeContext<PlayerScoreChangedEvent> context)
+        // save on the set
+        var message = context.Message;
+        var score = await _context.PlayerScores.FirstOrDefaultAsync(f => f.Username == message.PlayerUsername);
+        if(score is not null)
         {
-            // save on the set
-            return Task.CompletedTask;
+            _context.PlayerScores.Remove(score);
         }
+
+        _context.PlayerScores.Add(new Models.PlayerScore
+        {
+            Score = message.score,
+            Username = message.PlayerUsername,
+        });
+
+        await _context.SaveChangesAsync();
     }
 }

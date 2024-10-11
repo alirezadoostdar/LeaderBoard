@@ -2,11 +2,26 @@
 
 namespace LeaderBoard.Subscriptions.TopSoldProductSubscriber
 {
-    public class SoldProductConsumer : IConsumer<SoldProductEvent>
+    public class SoldProductConsumer(LeaderBoardDbContext context) : IConsumer<SoldProductEvent>
     {
-        public Task Consume(ConsumeContext<SoldProductEvent> context)
+        public readonly LeaderBoardDbContext _context = context;
+        public async Task Consume(ConsumeContext<SoldProductEvent> context)
         {
-            return Task.CompletedTask;
+            var message = context.Message;
+            var item = await _context.MostSoldProducts.FirstOrDefaultAsync(f => f.CatalogId == message.slug);
+            if (item is not null)
+            {
+                item.Score++;
+            }
+            else
+            {
+                _context.MostSoldProducts.Add(new MostSoldProduct
+                {
+                    CatalogId = message.slug,
+                    Score = 1
+                });
+            }
+            await _context.SaveChangesAsync();
         }
     }
 }
