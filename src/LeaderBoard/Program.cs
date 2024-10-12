@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.BrokerConfigure();
 builder.ConfigureApplicationDbContext();
+builder.Services.AddSingleton<SortedInMemoryDatabase>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -23,7 +24,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 
-app.MapGet("/{topic}", (string Topic,int k,LeaderBoardDbContext dbContext) =>
+app.MapGet("/{topic}/inmemorydatabase", (string Topic,int k,LeaderBoardDbContext dbContext) =>
 {
     if (Topic == "order")
     {
@@ -33,6 +34,21 @@ app.MapGet("/{topic}", (string Topic,int k,LeaderBoardDbContext dbContext) =>
     else if(Topic == "game")
     {
         var items = dbContext.PlayerScores.OrderByDescending(d => d.Score).Take(k).ToList();
+        return Results.Ok(items);
+    }
+    throw new InvalidOperationException();
+});
+
+app.MapGet("/{topic}/sorted-set", (string Topic, int k, SortedInMemoryDatabase sortedSet) =>
+{
+    if (Topic == "order")
+    {
+        var items = sortedSet.MostSoldProducts.OrderByDescending(d => d.Score).Take(k).ToList();
+        return Results.Ok(items);
+    }
+    else if (Topic == "game")
+    {
+        var items = sortedSet.PlayerScores.OrderByDescending(d => d.Score).Take(k).ToList();
         return Results.Ok(items);
     }
     throw new InvalidOperationException();

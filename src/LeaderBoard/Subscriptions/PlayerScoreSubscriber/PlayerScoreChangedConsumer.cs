@@ -1,12 +1,17 @@
 ﻿namespace LeaderBoard.Subscriptions.PlayerScoreSubscriber;
 
-public class PlayerScoreChangedConsumer(LeaderBoardDbContext context) : IConsumer<PlayerScoreChangedEvent>
+public class PlayerScoreChangedConsumer(SortedInMemoryDatabase sortedSet,
+    LeaderBoardDbContext context) : IConsumer<PlayerScoreChangedEvent>
 {
     private readonly LeaderBoardDbContext _context = context;
+    private readonly SortedInMemoryDatabase _sortedSet = sortedSet;
+
     public async Task Consume(ConsumeContext<PlayerScoreChangedEvent> context)
     {
-        // save on the set
+        // get data from consumer
         var message = context.Message;
+        PlayerScore playerScore = new PlayerScore() { Score = message.score,Username =message.PlayerUsername};
+
         var item = await _context.PlayerScores.FirstOrDefaultAsync(f => f.Username == message.PlayerUsername);
         if (item is not null)
         {
@@ -14,12 +19,11 @@ public class PlayerScoreChangedConsumer(LeaderBoardDbContext context) : IConsume
         }
         else
         {
-            _context.PlayerScores.Add(new Models.PlayerScore
-            {
-                Score = message.score,
-                Username = message.PlayerUsername,
-            });
+            _context.PlayerScores.Add(playerScore);
         }
         await _context.SaveChangesAsync();
+
+        //Update sorted set
+        _sortedSet.AddItem(playerScore);
     }
 }
