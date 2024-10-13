@@ -71,6 +71,7 @@ app.MapGet("/RedisSortedSet/{topic}/game", async (int K, string topic, ScoreServ
     return Results.Ok(items);
 });
 
+
 app.MapPost("/game",async (string player, int score ,IPublishEndpoint endpoint) =>
 {
    await endpoint.Publish(new PlayerScoreChangedEvent(player, score));
