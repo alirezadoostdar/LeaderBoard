@@ -1,6 +1,7 @@
 using LeaderBoard.Database;
 using LeaderBoard.Subscriptions.PlayerScoreSubscriber;
 using LeaderBoard.Subscriptions.TopSoldProductSubscriber;
+using MassTransit.Initializers;
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis;
 using System.Numerics;
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.BrokerConfigure();
 builder.ConfigureApplicationDbContext();
+builder.ConfigureRedis();
 builder.Services.AddSingleton<SortedInMemoryDatabase>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -51,6 +53,34 @@ app.MapGet("/{topic}/sorted-set", (string Topic, int k, SortedInMemoryDatabase s
     {
         var items = sortedSet.PlayerScores.OrderByDescending(d => d.Score).Take(k).ToList();
         return Results.Ok(items);
+    }
+    throw new InvalidOperationException();
+});
+
+
+app.MapGet("/{topic}/Redis sorted set", async (string Topic, int k, IConnectionMultiplexer connectionMultiplexer) =>
+{
+    if (Topic == "order")
+    {
+        var database = connectionMultiplexer.GetDatabase();
+        var items =await database.SortedSetRangeByRankWithScoresAsync(MostSoldProduct.RedisKey, 0, k - 1, Order.Descending);
+        var list = items.Select(x => new MostSoldProduct
+        {
+            CatalogId = x.Element.ToString(),
+            Score = Convert.ToInt32(x.Score)
+        });
+        return Results.Ok(list);
+    }
+    else if (Topic == "game")
+    {
+        var database = connectionMultiplexer.GetDatabase();
+        var items = await database.SortedSetRangeByRankWithScoresAsync(PlayerScore.RedisKey, 0, k - 1, Order.Descending);
+        var list = items.Select(x => new PlayerScore
+        {
+            Username = x.Element.ToString(),
+            Score = Convert.ToInt32(x.Score)
+        });
+        return Results.Ok(list);
     }
     throw new InvalidOperationException();
 });
