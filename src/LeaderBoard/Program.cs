@@ -14,6 +14,7 @@ builder.ConfigureRedis();
 builder.Services.AddSingleton<SortedInMemoryDatabase>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ScoreService>();
 
 
 var app = builder.Build();
@@ -58,31 +59,16 @@ app.MapGet("/{topic}/sorted-set", (string Topic, int k, SortedInMemoryDatabase s
 });
 
 
-app.MapGet("/{topic}/Redis sorted set", async (string Topic, int k, IConnectionMultiplexer connectionMultiplexer) =>
+app.MapGet("/RedisSortedSet/{topic}/soldProduct", async (int K, string topic, ScoreService scoreService) =>
 {
-    if (Topic == "order")
-    {
-        var database = connectionMultiplexer.GetDatabase();
-        var items =await database.SortedSetRangeByRankWithScoresAsync(MostSoldProduct.RedisKey, 0, k - 1, Order.Descending);
-        var list = items.Select(x => new MostSoldProduct
-        {
-            CatalogId = x.Element.ToString(),
-            Score = Convert.ToInt32(x.Score)
-        });
-        return Results.Ok(list);
-    }
-    else if (Topic == "game")
-    {
-        var database = connectionMultiplexer.GetDatabase();
-        var items = await database.SortedSetRangeByRankWithScoresAsync(PlayerScore.RedisKey, 0, k - 1, Order.Descending);
-        var list = items.Select(x => new PlayerScore
-        {
-            Username = x.Element.ToString(),
-            Score = Convert.ToInt32(x.Score)
-        });
-        return Results.Ok(list);
-    }
-    throw new InvalidOperationException();
+    var items = await scoreService.GetTop<MostSoldProduct>(topic, K);
+    return Results.Ok(items);
+});
+
+app.MapGet("/RedisSortedSet/{topic}/game", async (int K, string topic, ScoreService scoreService) =>
+{
+    var items = await scoreService.GetTop<PlayerScore>(topic, K);
+    return Results.Ok(items);
 });
 
 app.MapPost("/game",async (string player, int score ,IPublishEndpoint endpoint) =>

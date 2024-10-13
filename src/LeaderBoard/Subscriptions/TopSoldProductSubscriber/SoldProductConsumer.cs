@@ -5,11 +5,11 @@ using StackExchange.Redis;
 namespace LeaderBoard.Subscriptions.TopSoldProductSubscriber
 {
     public class SoldProductConsumer(
-        IConnectionMultiplexer connectionMultiplexer,
+        ScoreService scoreService,
         SortedInMemoryDatabase sortedSet,
         LeaderBoardDbContext context) : IConsumer<SoldProductEvent>
     {
-        private readonly IDatabase _database = connectionMultiplexer.GetDatabase();
+        private readonly ScoreService _scoreService = scoreService;
         public readonly LeaderBoardDbContext _context = context;
         private readonly SortedInMemoryDatabase _sortedSet = sortedSet;
         public async Task Consume(ConsumeContext<SoldProductEvent> context)
@@ -29,10 +29,10 @@ namespace LeaderBoard.Subscriptions.TopSoldProductSubscriber
             await _context.SaveChangesAsync();
 
             //Add to sorted Set list
-            _sortedSet.AddItem(soldProdut);
+            _sortedSet.AddItem(soldProdut); 
 
             //Add and Update to redis
-            await _database.SortedSetIncrementAsync(MostSoldProduct.RedisKey, soldProdut.CatalogId, soldProdut.Score);
+            await _scoreService.Increment(MostSoldProduct.RedisKey, soldProdut.CatalogId);
         }
     }
 }

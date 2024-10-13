@@ -3,11 +3,11 @@
 namespace LeaderBoard.Subscriptions.PlayerScoreSubscriber;
 
 public class PlayerScoreChangedConsumer(
-    IConnectionMultiplexer connectionMultiplexer,
+    ScoreService scoreService,
     SortedInMemoryDatabase sortedSet,
     LeaderBoardDbContext context) : IConsumer<PlayerScoreChangedEvent>
 {
-    private readonly IDatabase _database =connectionMultiplexer.GetDatabase();
+    private readonly ScoreService _scoreService = scoreService;
     private readonly LeaderBoardDbContext _context = context;
     private readonly SortedInMemoryDatabase _sortedSet = sortedSet;
 
@@ -32,7 +32,7 @@ public class PlayerScoreChangedConsumer(
         _sortedSet.AddItem(playerScore);
 
         //Add and Update to redis
-        await _database.SortedSetAddAsync(PlayerScore.RedisKey, playerScore.Username, playerScore.Score);
+        await _scoreService.Add(PlayerScore.RedisKey, playerScore.Username, playerScore.Score);
 
     }
 }
