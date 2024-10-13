@@ -2,6 +2,7 @@ using LeaderBoard.Database;
 using LeaderBoard.Subscriptions.PlayerScoreSubscriber;
 using LeaderBoard.Subscriptions.TopSoldProductSubscriber;
 using Microsoft.AspNetCore.Mvc;
+using StackExchange.Redis;
 using System.Numerics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -95,6 +96,17 @@ public static class WebApplicationExtensions
         builder.Services.AddDbContext<LeaderBoardDbContext>(configure =>
         {
             configure.UseInMemoryDatabase(nameof(LeaderBoardDbContext));
+        });
+    }
+
+    public static void ConfigureRedis(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddSingleton<IConnectionMultiplexer>(ps =>
+        {
+           var connectionString =builder.Configuration.GetConnectionString("RedisConnection");
+            if(connectionString is null)
+                throw new ArgumentNullException(nameof(connectionString));
+            return ConnectionMultiplexer.Connect(connectionString);
         });
     }
 }

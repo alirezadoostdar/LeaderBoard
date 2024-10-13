@@ -1,9 +1,15 @@
-﻿using MassTransit;
+﻿using LeaderBoard.Models;
+using MassTransit;
+using StackExchange.Redis;
 
 namespace LeaderBoard.Subscriptions.TopSoldProductSubscriber
 {
-    public class SoldProductConsumer(SortedInMemoryDatabase sortedSet, LeaderBoardDbContext context) : IConsumer<SoldProductEvent>
+    public class SoldProductConsumer(
+        IConnectionMultiplexer connectionMultiplexer,
+        SortedInMemoryDatabase sortedSet,
+        LeaderBoardDbContext context) : IConsumer<SoldProductEvent>
     {
+        private readonly IDatabase _database = connectionMultiplexer.GetDatabase();
         public readonly LeaderBoardDbContext _context = context;
         private readonly SortedInMemoryDatabase _sortedSet = sortedSet;
         public async Task Consume(ConsumeContext<SoldProductEvent> context)
@@ -24,6 +30,9 @@ namespace LeaderBoard.Subscriptions.TopSoldProductSubscriber
 
             //Add to sorted Set list
             _sortedSet.AddItem(soldProdut);
+
+            //Add and Update to redis
+            await _database.SortedSetIncrementAsync(MostSoldProduct.RedisKey, soldProdut.CatalogId, soldProdut.Score);
         }
     }
 }
